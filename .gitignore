@@ -1,0 +1,22 @@
+# Python / Virtual Environment
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Database & File Storage
+*.db
+*.sqlite3
+generated_certificates/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Pytest & Environment
+.pytest_cache/
+.env

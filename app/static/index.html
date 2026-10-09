@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Certificate Generator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+              800: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Header / Navigation -->
+  <header class="bg-gradient-to-r from-slate-900 via-brand-800 to-slate-900 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-900 font-bold text-xl shadow">
+          <i class="fa-solid fa-award"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">CertiGen Pro</h1>
+          <p class="text-xs text-slate-300">Bulk Certificate Generation Platform</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 bg-slate-800/60 p-1 rounded-xl text-sm font-medium">
+        <button id="tab-create" onclick="switchTab('create')" class="px-4 py-2 rounded-lg bg-brand-600 text-white shadow transition">
+          <i class="fa-solid fa-plus-circle mr-2"></i>Generate Certificates
+        </button>
+        <button id="tab-jobs" onclick="switchTab('jobs')" class="px-4 py-2 rounded-lg text-slate-300 hover:text-white transition">
+          <i class="fa-solid fa-list-check mr-2"></i>Certificate Batches
+        </button>
+        <button id="tab-verify" onclick="switchTab('verify')" class="px-4 py-2 rounded-lg text-slate-300 hover:text-white transition">
+          <i class="fa-solid fa-shield-halved mr-2"></i>Verify Code
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-20 right-5 z-50 flex flex-col space-y-2"></div>
+
+    <!-- TAB 1: GENERATE CERTIFICATES -->
+    <section id="content-create" class="space-y-6">
+      
+      <!-- Event & Template Customization Card -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between border-b pb-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Certificate Batch Generator</h2>
+            <p class="text-sm text-slate-500">Configure event information, choose your certificate design, and add participants.</p>
+          </div>
+          <button type="button" onclick="loadSampleData()" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 transition shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>Load Sample Data
+          </button>
+        </div>
+
+        <form id="create-job-form" onsubmit="submitJob(event)" class="space-y-6">
+          
+          <!-- Event & Issuer Details -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">Event / Course Title *</label>
+              <input type="text" id="job-title" required placeholder="e.g. Advanced Web Development 2026"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">Issuer / Organization Name *</label>
+              <input type="text" id="issuer-name" required placeholder="e.g. Antigravity Learning Academy" value="Organization"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">Issue Date</label>
+              <input type="date" id="issue-date"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+            </div>
+          </div>
+
+          <!-- Template Design Customizer Card -->
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-palette text-brand-600 mr-2"></i>Customize Certificate Design & Heading
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Certificate Header Title</label>
+                <select id="cert-heading-select" onchange="toggleCustomHeadingInput()" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none bg-white">
+                  <option value="CERTIFICATE OF ACHIEVEMENT">CERTIFICATE OF ACHIEVEMENT</option>
+                  <option value="CERTIFICATE OF COMPLETION">CERTIFICATE OF COMPLETION</option>
+                  <option value="CERTIFICATE OF EXCELLENCE">CERTIFICATE OF EXCELLENCE</option>
+                  <option value="CERTIFICATE OF PARTICIPATION">CERTIFICATE OF PARTICIPATION</option>
+                  <option value="CERTIFICATE OF APPRECIATION">CERTIFICATE OF APPRECIATION</option>
+                  <option value="CUSTOM">Custom Title...</option>
+                </select>
+                <input type="text" id="cert-heading-custom" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none mt-2 hidden" placeholder="Enter custom heading">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Design Color Theme</label>
+                <select id="template-type" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none bg-white">
+                  <option value="standard_v1">🏆 Classic Navy & Gold (Default)</option>
+                  <option value="emerald_gold">🌿 Emerald Green & Gold</option>
+                  <option value="burgundy_luxury">👑 Royal Burgundy & Rose</option>
+                  <option value="slate_corporate">💼 Sleek Corporate Slate</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recipients Section Header & Import Bar -->
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <h3 class="text-base font-bold text-slate-900">
+                Participant Recipients (<span id="recipient-count">1</span>)
+              </h3>
+              
+              <div class="flex items-center space-x-2">
+                <button type="button" onclick="openCsvModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition flex items-center">
+                  <i class="fa-solid fa-file-csv mr-1.5 text-sm"></i>Import CSV / Paste Data
+                </button>
+                <button type="button" onclick="addRecipientRow()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 transition">
+                  <i class="fa-solid fa-plus mr-1"></i>Add Participant
+                </button>
+                <button type="button" onclick="clearRecipients()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition">
+                  <i class="fa-solid fa-trash mr-1"></i>Clear All
+                </button>
+              </div>
+            </div>
+
+            <!-- Simplified Recipients Table (NO RAW JSON TYPING NEEDED) -->
+            <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+              <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-100 text-slate-700 font-semibold uppercase text-xs">
+                  <tr>
+                    <th class="p-3 w-12 text-center">#</th>
+                    <th class="p-3">Full Name *</th>
+                    <th class="p-3">Email Address</th>
+                    <th class="p-3 w-36">Grade / Score</th>
+                    <th class="p-3 w-48">Hours / Extra Info</th>
+                    <th class="p-3 w-12 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recipients-tbody" class="divide-y divide-slate-200">
+                  <tr class="recipient-row bg-white hover:bg-slate-50">
+                    <td class="p-3 text-center text-xs font-bold text-slate-400 row-num">1</td>
+                    <td class="p-2">
+                      <input type="text" class="rec-name w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" placeholder="e.g. Jane Doe" required>
+                    </td>
+                    <td class="p-2">
+                      <input type="email" class="rec-email w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" placeholder="jane@example.com">
+                    </td>
+                    <td class="p-2">
+                      <input type="text" class="rec-grade w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" placeholder="e.g. A+ / 95%">
+                    </td>
+                    <td class="p-2">
+                      <input type="text" class="rec-hours w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" placeholder="e.g. 40 Hours">
+                    </td>
+                    <td class="p-2 text-center">
+                      <button type="button" onclick="removeRow(this)" class="text-slate-400 hover:text-rose-600 transition p-1">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex justify-end">
+            <button type="submit" id="btn-submit-job" class="px-7 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition flex items-center space-x-2">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>Generate Certificates Batch</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 2: CERTIFICATE BATCH DASHBOARD -->
+    <section id="content-jobs" class="space-y-6 hidden">
+      <div id="job-detail-card" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
+          <div>
+            <div class="flex items-center space-x-3">
+              <h2 id="active-job-title" class="text-xl font-bold text-slate-900">Select a Certificate Batch</h2>
+              <span id="active-job-status" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">NO BATCH</span>
+            </div>
+            <p id="active-job-subtitle" class="text-xs text-slate-500 mt-1">Generate a batch above to view live status.</p>
+          </div>
+
+          <div id="job-actions" class="flex items-center space-x-2 hidden">
+            <button onclick="downloadJobZip()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold text-xs shadow flex items-center space-x-1.5 transition">
+              <i class="fa-solid fa-file-zipper"></i>
+              <span>Download All (ZIP Archive)</span>
+            </button>
+            <button onclick="refreshActiveJob()" class="p-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-600 transition" title="Refresh">
+              <i class="fa-solid fa-rotate"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Statistics Grid -->
+        <div id="job-stats-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 hidden">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <p class="text-xs font-semibold text-slate-500 uppercase">Total Participants</p>
+            <p id="stat-total" class="text-2xl font-bold text-slate-900">0</p>
+          </div>
+          <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+            <p class="text-xs font-semibold text-emerald-700 uppercase">Successful</p>
+            <p id="stat-success" class="text-2xl font-bold text-emerald-700">0</p>
+          </div>
+          <div class="bg-rose-50 p-4 rounded-xl border border-rose-200">
+            <p class="text-xs font-semibold text-rose-700 uppercase">Failed</p>
+            <p id="stat-failed" class="text-2xl font-bold text-rose-700">0</p>
+          </div>
+          <div class="bg-brand-50 p-4 rounded-xl border border-brand-200">
+            <p class="text-xs font-semibold text-brand-700 uppercase">Progress</p>
+            <p id="stat-progress" class="text-2xl font-bold text-brand-700">0%</p>
+          </div>
+        </div>
+
+        <!-- Live Progress Bar -->
+        <div id="progress-bar-container" class="space-y-1 hidden">
+          <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+            <div id="progress-bar-fill" class="bg-brand-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Generated Certificates Table -->
+        <div id="certificates-table-container" class="hidden">
+          <h3 class="text-base font-bold text-slate-900 mb-3">Batch Certificate Items</h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-sm text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 font-semibold uppercase text-xs">
+                <tr>
+                  <th class="p-3">Participant Name</th>
+                  <th class="p-3">Email</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Verification Code</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="certificates-tbody" class="divide-y divide-slate-200">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: VERIFY CERTIFICATE PORTAL -->
+    <section id="content-verify" class="space-y-6 hidden max-w-2xl mx-auto">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 text-center space-y-6">
+        <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-inner">
+          <i class="fa-solid fa-certificate"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">Certificate Verification Portal</h2>
+          <p class="text-sm text-slate-500 mt-1">Enter a certificate verification code (e.g. CERT-XXXXXXXX) to authenticate its validity.</p>
+        </div>
+
+        <form onsubmit="verifyCertificate(event)" class="flex gap-2">
+          <input type="text" id="verify-code-input" required placeholder="Enter Verification Code (e.g. CERT-XXXXXXXX)"
+            class="flex-1 px-4 py-3 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-brand-500 outline-none uppercase font-mono tracking-wider">
+          <button type="submit" class="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl transition shadow">
+            Verify
+          </button>
+        </form>
+
+        <div id="verify-result" class="hidden p-6 rounded-2xl border text-left space-y-4">
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CSV Import Modal -->
+  <div id="csv-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-file-csv text-emerald-600 mr-2"></i>Import Recipients CSV or Paste Text</h3>
+        <button onclick="closeCsvModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <p class="text-xs text-slate-500">Paste CSV data below with columns: <code>Name, Email, Grade, Hours</code> or drag and drop a CSV file.</p>
+
+      <textarea id="csv-paste-area" rows="6" placeholder="Jane Doe, jane@example.com, A+, 40 Hours&#10;John Smith, john@example.com, B+, 30 Hours"
+        class="w-full p-3 border border-slate-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-brand-500 outline-none"></textarea>
+
+      <div class="flex justify-between items-center">
+        <input type="file" id="csv-file-input" accept=".csv, .txt" onchange="handleCsvFile(event)" class="text-xs text-slate-600">
+        <div class="space-x-2">
+          <button onclick="closeCsvModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 rounded-xl border border-slate-300 hover:bg-slate-100">Cancel</button>
+          <button onclick="processCsvPaste()" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow">Import Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF Preview Modal -->
+  <div id="pdf-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+      <div class="p-4 border-b flex items-center justify-between bg-slate-100">
+        <h3 id="pdf-modal-title" class="font-bold text-slate-900">Certificate Visual Preview</h3>
+        <button onclick="closePdfModal()" class="text-slate-500 hover:text-slate-800 text-lg p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="flex-1 bg-slate-200">
+        <iframe id="pdf-frame" class="w-full h-full border-none"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    let activeJobId = null;
+    let pollInterval = null;
+
+    document.getElementById('issue-date').valueAsDate = new Date();
+
+    function toggleCustomHeadingInput() {
+      const select = document.getElementById('cert-heading-select');
+      const customInput = document.getElementById('cert-heading-custom');
+      if (select.value === 'CUSTOM') {
+        customInput.classList.remove('hidden');
+        customInput.focus();
+      } else {
+        customInput.classList.add('hidden');
+      }
+    }
+
+    function switchTab(tabName) {
+      ['create', 'jobs', 'verify'].forEach(t => {
+        document.getElementById(`content-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-${t}`);
+        btn.classList.remove('bg-brand-600', 'text-white', 'shadow');
+        btn.classList.add('text-slate-300');
+      });
+
+      document.getElementById(`content-${tabName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow');
+      activeBtn.classList.remove('text-slate-300');
+    }
+
+    function updateRowNumbers() {
+      const rows = document.querySelectorAll('.recipient-row');
+      rows.forEach((row, idx) => {
+        row.querySelector('.row-num').innerText = idx + 1;
+      });
+      document.getElementById('recipient-count').innerText = rows.length;
+    }
+
+    function addRecipientRow(name = '', email = '', grade = '', hours = '') {
+      const tbody = document.getElementById('recipients-tbody');
+      const tr = document.createElement('tr');
+      tr.className = 'recipient-row bg-white hover:bg-slate-50';
+      tr.innerHTML = `
+        <td class="p-3 text-center text-xs font-bold text-slate-400 row-num"></td>
+        <td class="p-2">
+          <input type="text" class="rec-name w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" value="${name}" placeholder="e.g. John Smith" required>
+        </td>
+        <td class="p-2">
+          <input type="email" class="rec-email w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" value="${email}" placeholder="john@example.com">
+        </td>
+        <td class="p-2">
+          <input type="text" class="rec-grade w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" value="${grade}" placeholder="e.g. A+ / 95%">
+        </td>
+        <td class="p-2">
+          <input type="text" class="rec-hours w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 outline-none" value="${hours}" placeholder="e.g. 40 Hours">
+        </td>
+        <td class="p-2 text-center">
+          <button type="button" onclick="removeRow(this)" class="text-slate-400 hover:text-rose-600 transition p-1">
+            <i class="fa-solid fa-xmark text-base"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      updateRowNumbers();
+    }
+
+    function removeRow(btn) {
+      const rows = document.querySelectorAll('.recipient-row');
+      if (rows.length > 1) {
+        btn.closest('tr').remove();
+        updateRowNumbers();
+      } else {
+        showToast('At least one recipient is required', 'warning');
+      }
+    }
+
+    function clearRecipients() {
+      document.getElementById('recipients-tbody').innerHTML = '';
+      addRecipientRow();
+    }
+
+    function openCsvModal() {
+      document.getElementById('csv-modal').classList.remove('hidden');
+    }
+
+    function closeCsvModal() {
+      document.getElementById('csv-modal').classList.add('hidden');
+    }
+
+    function handleCsvFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('csv-paste-area').value = evt.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    function processCsvPaste() {
+      const text = document.getElementById('csv-paste-area').value.trim();
+      if (!text) return;
+
+      const lines = text.split('\n');
+      let count = 0;
+
+      if (lines.length > 0) {
+        // If first row looks like header, skip it
+        const firstLine = lines[0].toLowerCase();
+        let startIndex = (firstLine.includes('name') || firstLine.includes('email')) ? 1 : 0;
+
+        if (startIndex === 1 && lines.length === 1) {
+          showToast('CSV only contained header row', 'warning');
+          return;
+        }
+
+        document.getElementById('recipients-tbody').innerHTML = '';
+
+        for (let i = startIndex; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+          
+          const name = cols[0] || '';
+          const email = cols[1] || '';
+          const grade = cols[2] || '';
+          const hours = cols[3] || '';
+
+          if (name) {
+            addRecipientRow(name, email, grade, hours);
+            count++;
+          }
+        }
+      }
+
+      closeCsvModal();
+      showToast(`Imported ${count} recipients from CSV!`, 'success');
+    }
+
+    function loadSampleData() {
+      document.getElementById('job-title').value = "Fullstack Web Development Workshop 2026";
+      document.getElementById('issuer-name').value = "Global Tech Institute";
+      document.getElementById('cert-heading-select').value = "CERTIFICATE OF COMPLETION";
+      toggleCustomHeadingInput();
+      document.getElementById('template-type').value = "emerald_gold";
+
+      const sampleRecipients = [
+        { name: "Alice Johnson", email: "alice@example.com", grade: "A+", hours: "40 Hours" },
+        { name: "Bob Smith", email: "bob@example.com", grade: "A", hours: "35 Hours" },
+        { name: "Charlie Davis", email: "charlie@example.com", grade: "B+", hours: "30 Hours" },
+        { name: "Invalid Email Participant", email: "not-an-email-format", grade: "C", hours: "" },
+        { name: "Eva Green", email: "eva@example.com", grade: "A+", hours: "50 Hours" }
+      ];
+
+      document.getElementById('recipients-tbody').innerHTML = '';
+      sampleRecipients.forEach(r => addRecipientRow(r.name, r.email, r.grade, r.hours));
+      showToast('Loaded sample data (includes 1 intentional invalid record to demonstrate error handling)', 'info');
+    }
+
+    async function submitJob(e) {
+      e.preventDefault();
+      const title = document.getElementById('job-title').value;
+      const issuer_name = document.getElementById('issuer-name').value;
+      const issue_date = document.getElementById('issue-date').value;
+      const template_type = document.getElementById('template-type').value;
+
+      const headingSelect = document.getElementById('cert-heading-select').value;
+      const headingCustom = document.getElementById('cert-heading-custom').value.trim();
+      const certificate_heading = (headingSelect === 'CUSTOM' ? headingCustom : headingSelect) || "CERTIFICATE OF ACHIEVEMENT";
+
+      const rows = document.querySelectorAll('.recipient-row');
+      const recipients = [];
+
+      for (const row of rows) {
+        const name = row.querySelector('.rec-name').value.trim();
+        const email = row.querySelector('.rec-email').value.trim() || null;
+        const grade = row.querySelector('.rec-grade').value.trim();
+        const hours = row.querySelector('.rec-hours').value.trim();
+
+        let custom_attributes = null;
+        if (grade || hours) {
+          custom_attributes = {};
+          if (grade) custom_attributes["grade"] = grade;
+          if (hours) custom_attributes["hours"] = hours;
+        }
+
+        recipients.push({
+          recipient_name: name,
+          recipient_email: email,
+          custom_attributes: custom_attributes
+        });
+      }
+
+      const payload = {
+        title,
+        issuer_name,
+        issue_date: issue_date || null,
+        template_type,
+        certificate_heading,
+        recipients
+      };
+
+      try {
+        const res = await fetch('/api/v1/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          showToast(err.detail || 'Failed generating batch', 'error');
+          return;
+        }
+
+        const data = await res.json();
+        activeJobId = data.id;
+        showToast('Certificate batch submitted! Processing certificates...', 'success');
+        switchTab('jobs');
+        loadJobDetails(activeJobId);
+        startPolling(activeJobId);
+      } catch (err) {
+        showToast('Network error submitting job', 'error');
+      }
+    }
+
+    async function loadJobDetails(jobId) {
+      try {
+        const res = await fetch(`/api/v1/jobs/${jobId}`);
+        if (!res.ok) return;
+
+        const job = await res.json();
+        renderJobDetails(job);
+      } catch (err) {
+        console.error('Error fetching job details:', err);
+      }
+    }
+
+    function renderJobDetails(job) {
+      document.getElementById('active-job-title').innerText = job.title;
+      document.getElementById('active-job-subtitle').innerText = `Batch ID: ${job.id} | Issuer: ${job.issuer_name} | Date: ${job.issue_date}`;
+
+      const statusBadge = document.getElementById('active-job-status');
+      statusBadge.innerText = job.status;
+      statusBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold ';
+
+      if (job.status === 'COMPLETED') statusBadge.className += 'bg-emerald-100 text-emerald-800';
+      else if (job.status === 'PARTIALLY_FAILED') statusBadge.className += 'bg-amber-100 text-amber-800';
+      else if (job.status === 'FAILED') statusBadge.className += 'bg-rose-100 text-rose-800';
+      else statusBadge.className += 'bg-brand-100 text-brand-800 animate-pulse';
+
+      document.getElementById('job-actions').classList.remove('hidden');
+      document.getElementById('job-stats-grid').classList.remove('hidden');
+      document.getElementById('progress-bar-container').classList.remove('hidden');
+      document.getElementById('certificates-table-container').classList.remove('hidden');
+
+      document.getElementById('stat-total').innerText = job.total_count;
+      document.getElementById('stat-success').innerText = job.success_count;
+      document.getElementById('stat-failed').innerText = job.failed_count;
+      document.getElementById('stat-progress').innerText = `${job.progress_percentage}%`;
+
+      document.getElementById('progress-bar-fill').style.width = `${job.progress_percentage}%`;
+
+      const tbody = document.getElementById('certificates-tbody');
+      tbody.innerHTML = '';
+
+      if (job.certificates && job.certificates.length > 0) {
+        job.certificates.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.className = 'bg-white hover:bg-slate-50';
+
+          const isSuccess = c.status === 'SUCCESS';
+          const badgeClass = isSuccess ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700';
+
+          tr.innerHTML = `
+            <td class="p-3 font-semibold text-slate-900">${c.recipient_name}</td>
+            <td class="p-3 text-slate-500">${c.recipient_email || '-'}</td>
+            <td class="p-3">
+              <span class="px-2 py-0.5 rounded text-xs font-bold ${badgeClass}">${c.status}</span>
+              ${c.error_message ? `<p class="text-xs text-rose-600 mt-0.5">${c.error_message}</p>` : ''}
+            </td>
+            <td class="p-3 font-mono text-xs text-slate-600">${c.certificate_code || '-'}</td>
+            <td class="p-3 text-right space-x-1">
+              ${isSuccess ? `
+                <button onclick="previewPdf('${c.preview_url}', '${c.recipient_name}')" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition">
+                  <i class="fa-solid fa-eye mr-1"></i>Preview
+                </button>
+                <a href="${c.download_url}" download class="px-2.5 py-1 text-xs bg-brand-50 hover:bg-brand-100 text-brand-700 font-medium rounded-lg transition inline-block">
+                  <i class="fa-solid fa-download mr-1"></i>Download PDF
+                </a>
+              ` : '-'}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      if (job.status !== 'PENDING' && job.status !== 'PROCESSING') {
+        stopPolling();
+      }
+    }
+
+    function startPolling(jobId) {
+      stopPolling();
+      pollInterval = setInterval(() => {
+        loadJobDetails(jobId);
+      }, 1000);
+    }
+
+    function stopPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+
+    function refreshActiveJob() {
+      if (activeJobId) loadJobDetails(activeJobId);
+    }
+
+    function downloadJobZip() {
+      if (!activeJobId) return;
+      window.location.href = `/api/v1/jobs/${activeJobId}/download-all`;
+    }
+
+    function previewPdf(url, recipient) {
+      document.getElementById('pdf-modal-title').innerText = `Visual Certificate Preview - ${recipient}`;
+      document.getElementById('pdf-frame').src = url;
+      document.getElementById('pdf-modal').classList.remove('hidden');
+    }
+
+    function closePdfModal() {
+      document.getElementById('pdf-modal').classList.add('hidden');
+      document.getElementById('pdf-frame').src = '';
+    }
+
+    async function verifyCertificate(e) {
+      e.preventDefault();
+      const code = document.getElementById('verify-code-input').value.trim();
+      if (!code) return;
+
+      try {
+        const res = await fetch(`/api/v1/certificates/verify/${code}`);
+        const data = await res.json();
+
+        const container = document.getElementById('verify-result');
+        container.classList.remove('hidden');
+
+        if (data.valid) {
+          container.className = 'p-6 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-950 space-y-2';
+          container.innerHTML = `
+            <div class="flex items-center space-x-2 text-emerald-700 font-bold text-lg">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>Valid & Authentic Certificate</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm mt-3 pt-3 border-t border-emerald-200">
+              <div><span class="font-semibold">Recipient:</span> ${data.recipient_name}</div>
+              <div><span class="font-semibold">Verification Code:</span> <code class="font-mono">${data.certificate_code}</code></div>
+              <div><span class="font-semibold">Course/Event:</span> ${data.title}</div>
+              <div><span class="font-semibold">Issuer:</span> ${data.issuer_name}</div>
+              <div><span class="font-semibold">Issue Date:</span> ${data.issue_date}</div>
+              <div><span class="font-semibold">Generated:</span> ${new Date(data.generated_at).toLocaleString()}</div>
+            </div>
+          `;
+        } else {
+          container.className = 'p-6 rounded-2xl border border-rose-200 bg-rose-50 text-rose-950 space-y-2';
+          container.innerHTML = `
+            <div class="flex items-center space-x-2 text-rose-700 font-bold text-lg">
+              <i class="fa-solid fa-circle-xmark"></i>
+              <span>Verification Failed</span>
+            </div>
+            <p class="text-sm text-rose-800">${data.message || 'The verification code provided is invalid or has not been issued.'}</p>
+          `;
+        }
+      } catch (err) {
+        showToast('Error verifying certificate code', 'error');
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : type === 'warning' ? 'bg-amber-600' : 'bg-slate-800';
+      toast.className = `${bg} text-white px-4 py-3 rounded-xl shadow-lg text-sm flex items-center space-x-2 transition-all duration-300 transform translate-x-5 opacity-0`;
+      toast.innerHTML = `<span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-x-5', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-5');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
